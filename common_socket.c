@@ -100,8 +100,11 @@ int try_recv(void* buff, int buff_len, const int* skt){
             printf("error recv\n");
             return -1;
         }
+        if(recieved == 0){
+            return 0;
+        }
         bytesRecieved += recieved;
     }
-    return 0;
+    return recieved;
 }
 
