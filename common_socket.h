@@ -1,8 +1,6 @@
 #ifndef _SOCKET_H
 #define _SOCKET_H
 
-#define _POSIX_C_SOURCE 200112L
-
 #include <stdio.h>
 #include <errno.h>
 #include <string.h>
@@ -24,7 +22,7 @@ int server_bind(const char* port, int* skt);
 
 //int send_message(const char* msg, const int* skt);
 
-int try_recv(void* buff, int buff_len, const int* skt);
+int try_recv(void* buff, uint32_t buff_len, const int* skt);
 
 int try_send(const void* msg, int msg_len, const int* skt);
 

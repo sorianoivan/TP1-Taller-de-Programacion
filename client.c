@@ -8,11 +8,10 @@ void client_initialize(client_t* client) {
 }
 
 int send_message(const char* msg, int* skt, int full_msg_len){
-    //int len = (int)strlen(msg);
-    if(try_send(&full_msg_len, sizeof(int), skt) != 0){
+    /*if(try_send(&full_msg_len, sizeof(int), skt) != 0){
         printf("error send");
         return -1;
-    }
+    }*/
 
     if(try_send(msg, full_msg_len, skt) != 0){
         printf("error send");
@@ -58,11 +57,23 @@ int client_start(const char* host, const char* port, const char* filename) {
         if(strcmp(line, "") != 0){
             msg = process_line(line, &full_msg_len, id);
             id++;
+
+            /*for (int i = 0; i < full_msg_len; ++i) {
+                printf("%c", *(msg + i));
+            }*/
             s = send_message(msg, &client.client_skt, full_msg_len); //Ver lo de cuando se cierra el server
             memset(line, 0, strlen(line));
 
             free(msg);
             full_msg_len = 0;
+
+            char* response[3];
+            if(try_recv(response,3, &client.client_skt) == -1){
+                printf("error recieve response \n");
+            } else {
+                printf("response: %s\n", response);
+            }
+
         }
    }
     free(line);

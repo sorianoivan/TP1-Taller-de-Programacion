@@ -1,3 +1,5 @@
+#define _POSIX_C_SOURCE 200112L
+
 #include "common_socket.h"
 
 int _set_addrinfo(struct addrinfo** results, const char* host, const char* port, const char* mode) {
@@ -82,7 +84,8 @@ int try_send(const void* msg, int msg_len, const int* skt){
     while (bytesSentTotal < msg_len) {
         sent = send(*skt, msg, msg_len - bytesSentTotal, MSG_NOSIGNAL);
         if (sent == -1){
-            printf("error send\n");
+            //printf("error send\n");
+            printf("Error: %s\n", strerror(errno));
             return -1;
         }
         bytesSentTotal += sent;
@@ -90,7 +93,7 @@ int try_send(const void* msg, int msg_len, const int* skt){
     return 0;
 }
 
-int try_recv(void* buff, int buff_len, const int* skt){
+int try_recv(void* buff, uint32_t buff_len, const int* skt){
     int recieved = 0;
     int bytesRecieved = 0;
 
