@@ -78,9 +78,9 @@ void show_message(char* msg, const int id, u_int32_t body_len){
     bytes_read += curr_param_len + curr_padding + 1;
 
     printf("* Destino: %s\n", msg_to_print.dest);
-    printf("* Path: %s\n", msg_to_print.path);
+    printf("* Ruta: %s\n", msg_to_print.path);
     printf("* Interfaz: %s\n", msg_to_print.interface);
-    printf("* Método: %s\n", msg_to_print.method);
+    printf("* Metodo: %s\n", msg_to_print.method);
 
     //u_int32_t header_bytes_read = bytes_read;
 
