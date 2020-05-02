@@ -27,12 +27,18 @@ int client_start(const char* host, const char* port, const char* filename) {
         return ERROR;
     }
 
-    FILE* file = fopen(filename, "r");
+    FILE* file;
     char* line;
-    char buff[33];
+    char buff[BUFF_SIZE];
     int read = 0;
     int s = 0;
     u_int32_t id = 1;
+
+    if (strcmp(filename, "stdin") == 0){
+        file = stdin;
+    } else {
+        file = fopen(filename, "r");
+    }
 
     line = malloc(33);
     memset(line, 0, 33);
@@ -78,6 +84,10 @@ int client_start(const char* host, const char* port, const char* filename) {
         }
    }
     free(line);
+
+    if (strcmp(filename, "stdin") != 0){
+        fclose(file);
+    }
 
     shutdown(client.client_skt, SHUT_RDWR);
     close(client.client_skt);
