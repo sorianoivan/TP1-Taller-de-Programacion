@@ -34,7 +34,7 @@ int client_start(const char* host, const char* port, const char* filename) {
     char buff[33];
     int read = 0;
     int s = 0;
-    int id = 1;
+    u_int32_t id = 1;
 
     line = malloc(33);
     memset(line, 0, 33);
@@ -56,7 +56,6 @@ int client_start(const char* host, const char* port, const char* filename) {
 
         if(strcmp(line, "") != 0){
             msg = process_line(line, &full_msg_len, id);
-            id++;
 
             /*for (int i = 0; i < full_msg_len; ++i) {
                 printf("%c", *(msg + i));
@@ -67,13 +66,13 @@ int client_start(const char* host, const char* port, const char* filename) {
             free(msg);
             full_msg_len = 0;
 
-            char* response[3];
+            char response[3];
             if(try_recv(response,3, &client.client_skt) == -1){
                 printf("error recieve response \n");
             } else {
-                printf("response: %s\n", response);
+                printf("0x%08X: %s\n",id, response);//ver si tengo q mandar el id desde el server
             }
-
+            id++;
         }
    }
     free(line);
