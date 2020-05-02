@@ -77,7 +77,7 @@ int client_start(const char* host, const char* port, const char* filename) {
             if (try_recv(response,3, &client.client_skt) == -1){
                 printf("error recieve response \n");
             } else {
-                printf("0x%08X: %s\n",id, response);
+                printf("0x%08x: %s\n",id, response);
                 //ver si tengo q mandar el id desde el server
             }
             id++;

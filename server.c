@@ -43,7 +43,7 @@ void show_message(char* msg, const int id, u_int32_t body_len){
 
     message_t msg_to_print;
 
-    printf("* Id: 0x%08X\n", id);
+    printf("* Id: 0x%08x\n", id);
 
     bytes_read += 4; //no me importan los primeros 4
     curr_param_len = *( (uint32_t *) (msg + bytes_read));
