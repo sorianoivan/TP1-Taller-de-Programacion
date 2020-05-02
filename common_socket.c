@@ -2,14 +2,15 @@
 
 #include "common_socket.h"
 
-int _set_addrinfo(struct addrinfo** results, const char* host, const char* port, const char* mode) {
+int set_addrinfo(struct addrinfo** results,
+        const char* host, const char* port, const char* mode) {
     struct addrinfo hints;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET;       /* IPv4 (or AF_INET6 for IPv6)     */
     hints.ai_socktype = SOCK_STREAM; /* TCP  (or SOCK_DGRAM for UDP)    */
 
-    if(!strcmp(mode,"client")){
+    if (!strcmp(mode,"client")){
         hints.ai_flags = 0;     /* None (or AI_PASSIVE for server) */
     } else {
         hints.ai_flags = AI_PASSIVE;
@@ -18,30 +19,34 @@ int _set_addrinfo(struct addrinfo** results, const char* host, const char* port,
     return getaddrinfo(host, port, &hints, results);
 }
 
-int _try_connect(struct addrinfo* results, int* skt, const char* mode){
+int try_connect(struct addrinfo* results, int* skt, const char* mode){
     struct addrinfo* current_result;
     bool connected = false;
 
-    for (current_result = results; current_result != NULL && connected == false; current_result = current_result->ai_next) {
-        *skt = socket(current_result->ai_family, current_result->ai_socktype, current_result->ai_protocol);
+    for (current_result = results; current_result != NULL
+    && connected == false; current_result = current_result->ai_next) {
+        *skt = socket(current_result->ai_family,
+                current_result->ai_socktype, current_result->ai_protocol);
         if (*skt == -1){
             printf("Error: %s\n", strerror(errno));
             return -1;
         }
-        if(!strcmp(mode,"server")){
+        if (!strcmp(mode,"server")){
             int val = 1;
             setsockopt(*skt, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val));
 
-            if (bind(*skt, current_result->ai_addr, current_result->ai_addrlen) != 0){
+            if (bind(*skt, current_result->ai_addr,
+                    current_result->ai_addrlen) != 0){
                 printf("Error: %s\n", strerror(errno));
                 close(*skt);
                 return -1;
             } else {
-                connected = true;                                                                           //CAMBIAR ESTO POR PUNTERO A FUNCION
-            }                                                                                               // CONNECT O BIND
+                connected = true;   //CAMBIAR ESTO POR PUNTERO A FUNCION
+            }                       // CONNECT O BIND
 
         } else {
-            if (connect(*skt, current_result->ai_addr, current_result->ai_addrlen) == -1) {
+            if (connect(*skt, current_result->ai_addr,
+                    current_result->ai_addrlen) == -1) {
                 printf("Error: %s\n", strerror(errno));
                 close(*skt);
                 return -1;
@@ -59,22 +64,22 @@ int client_connect(const char* host, const char* port, int* skt){
     struct addrinfo *results;
     memset(&results, 0, sizeof(struct addrinfo*));
 
-    if (_set_addrinfo(&results, host, port, "client") != 0) {
+    if (set_addrinfo(&results, host, port, "client") != 0) {
         printf("Error in getaddrinfo");
         return 1;
     }
-    return _try_connect(results, skt, "client");
+    return try_connect(results, skt, "client");
 }
 
 int server_bind(const char* port, int* skt){
     struct addrinfo *results;
     memset(&results, 0, sizeof(struct addrinfo*));
 
-    if (_set_addrinfo(&results, NULL, port, "server") != 0) {
+    if (set_addrinfo(&results, NULL, port, "server") != 0) {
         printf("Error in getaddrinfo");
         return 1;
     }
-    return _try_connect(results, skt, "server");
+    return try_connect(results, skt, "server");
 }
 
 int try_send(const void* msg, int msg_len, const int* skt){
@@ -103,7 +108,7 @@ int try_recv(void* buff, uint32_t buff_len, const int* skt){
             printf("error recv\n");
             return -1;
         }
-        if(recieved == 0){
+        if (recieved == 0){
             return 0;
         }
         bytesRecieved += recieved;
