@@ -51,6 +51,10 @@ static int _try_connect(struct addrinfo* results, int* skt) {
     return OK;
 }
 
+/* Esta funcion se pasa del limite de 20 lineas ya que hace llamadas a
+ * funciones que reciben parametros largos, lo que causa que dichas
+ * llamadas ocupen mas de 80 caracteres por lo cual debo repartirlas
+ * en mas lineas */
 static int _try_bind(struct addrinfo* results, int* skt) {
     struct addrinfo* current_result;
     bool connected = false;
@@ -58,13 +62,15 @@ static int _try_bind(struct addrinfo* results, int* skt) {
     for (current_result = results; current_result != NULL
         && connected == false; current_result = current_result->ai_next) {
         *skt = socket(current_result->ai_family,
-                      current_result->ai_socktype, current_result->ai_protocol);
+                      current_result->ai_socktype,
+                      current_result->ai_protocol);
         if (*skt == -1) {
             fprintf(stderr, "Error: %s\n", strerror(errno));
             return ERROR;
         }
         int val = 1;
-        if(setsockopt(*skt, SOL_SOCKET, SO_REUSEADDR, &val, sizeof(val)) == -1) return ERROR;
+        if (setsockopt(*skt, SOL_SOCKET, SO_REUSEADDR,
+                &val, sizeof(val)) == -1) return ERROR;
         if (bind(*skt, current_result->ai_addr,
                  current_result->ai_addrlen) == -1) {
             fprintf(stderr, "Error: %s\n", strerror(errno));
@@ -78,12 +84,13 @@ static int _try_bind(struct addrinfo* results, int* skt) {
     return OK;
 }
 
-int set_up_connection(const char* host, const char* port, int* skt, const char* mode){
+int set_up_connection(const char* host, const char* port, int* skt,
+        const char* mode){
     struct addrinfo *results;
     memset(&results, 0, sizeof(struct addrinfo*));
 
     int flag = _set_addrinfo(&results, host, port, mode);
-    if(flag != 0){
+    if (flag != 0){
         fprintf(stderr, "Error: %s\n", gai_strerror(flag));
         return ERROR;
     }

@@ -9,53 +9,49 @@
 #define FIRM_PARAMS_INFO_SIZE 2
 #define FIRM_PARAMS_TYPE_SIZE 2
 
+static void _set_header_param(char** param, char* line, char** saveptr,
+        int* len, int* padding){
+    *param = strtok_r(line, " (", saveptr);
+    *len += (int)strlen(*param);
+    *padding += (int)(8 - (strlen(*param) + 1) % 8) % 8;
+}
+
 static void _split_line(message_t* msg, int* padding, int* len, char* line){
     char* saveptr;
 
-    msg->dest = strtok_r(line, " (", &saveptr);
-    *len += (int)strlen(msg->dest);
-    *padding += (int)(8 - (strlen(msg->dest) + 1) % 8) % 8;
-
-    msg->path = strtok_r(NULL, " (", &saveptr);
-    *len += (int)strlen(msg->path);
-    *padding += (int)(8 - (strlen(msg->path) + 1) % 8) % 8;
-
-    msg->interface = strtok_r(NULL, " (", &saveptr);
-    *len += (int)strlen(msg->interface);
-    *padding += (int)(8 - (strlen(msg->interface) + 1)% 8) % 8;
-
-    msg->method = strtok_r(NULL, "(", &saveptr);
-    *len += (int)strlen(msg->method);
-    *padding += (int)(8 - (strlen(msg->method) + 1) % 8) % 8;
+    _set_header_param(&msg->dest, line, &saveptr, len, padding);
+    _set_header_param(&msg->path, NULL, &saveptr, len, padding);
+    _set_header_param(&msg->interface, NULL, &saveptr, len, padding);
+    _set_header_param(&msg->method, NULL, &saveptr, len, padding);
 
     msg->parameters = strtok_r(NULL, ")\n", &saveptr);
 }
 
-static void _build_body(char** body, char* parameters, int* body_len, int* padding, int* cant_param, int* firma_len, int* padding_firma) {
+static void _build_body(char** body, char* parameters, int* body_len,
+        int* padding, int* cant_param, int* firma_len, int* padding_firma) {
     char* curr_param = NULL;
     char* saveptr;
-    int curr_len = 0;
-    int body_bytes_written = 0;
+    int curr_len = 0, body_bytes_written = 0;
 
     if (parameters != NULL) curr_param = strtok_r(parameters, ", )", &saveptr);
     while (curr_param != NULL && strcmp(curr_param, "") != 0){
         *cant_param += 1;
         curr_len = (int)strlen(curr_param);
         *body_len += (curr_len + 4 + 1);
-        *body = realloc(*body, *body_len + curr_len + 4 + 1); //param + largo + \0
+        *body = realloc(*body, *body_len + curr_len + 4 + 1);
         memcpy(*body + body_bytes_written, &curr_len, 4);
         body_bytes_written += 4;
         memcpy(*body + body_bytes_written, curr_param, curr_len + 1);
         body_bytes_written += curr_len + 1;
         curr_param = strtok_r(NULL, ",)", &saveptr);
     }
-
     if (*cant_param != 0) *firma_len = 5 + 2* (*cant_param);
     *padding_firma = (8 - (*firma_len) % 8) % 8;
     *padding += *padding_firma;
 }
 
-static void _add_header_info(char** header, int len, int body_len, int id, int* header_bytes_written, int padding_firma){
+static void _add_header_info(char** header, int len, int body_len, int id,
+        int* header_bytes_written, int padding_firma){
     int header_len = 0;
 
     *header = malloc(len + 1);
@@ -75,7 +71,8 @@ static void _add_header_info(char** header, int len, int body_len, int id, int* 
     *header_bytes_written += 4;
 }
 
-static void _add_header_param(char** header, int* header_bytes_written, char* param){
+static void _add_header_param(char** header,
+        int* header_bytes_written, char* param){
     int curr_len = 0;
 
     snprintf(*header + *header_bytes_written, PARAMS_INFO_SIZE,
@@ -90,10 +87,12 @@ static void _add_header_param(char** header, int* header_bytes_written, char* pa
                              (int)(8 - (strlen(param) + 1) % 8) % 8;
 }
 
-static char* _build_header(int id, int* len, int body_len, int* header_bytes_written, int padding_firma, message_t msg){
+static char* _build_header(int id, int* len, int body_len,
+        int* header_bytes_written, int padding_firma, message_t msg){
     char* header;
 
-    _add_header_info(&header, *len, body_len, id, header_bytes_written, padding_firma);
+    _add_header_info(&header, *len, body_len, id,
+            header_bytes_written, padding_firma);
     _add_header_param(&header, header_bytes_written, msg.path);
     _add_header_param(&header, header_bytes_written, msg.dest);
     _add_header_param(&header, header_bytes_written, msg.interface);
@@ -102,47 +101,42 @@ static char* _build_header(int id, int* len, int body_len, int* header_bytes_wri
     return header;
 }
 
-static void _add_body(int cant_param, char** header, char* body, int* header_bytes_written, int padding_firma, int body_len, int* len){
-    if (cant_param != 0){
-        snprintf(*header + *header_bytes_written, PARAMS_INFO_SIZE,
-                 "%c%c%s", 8, 1, "g");
-        *header_bytes_written += 4;
-        snprintf(*header + *header_bytes_written, FIRM_PARAMS_INFO_SIZE,
-                 "%c", cant_param);
-        *header_bytes_written += 1;
-        for (int i = 0; i < cant_param; ++i) {
-            snprintf(*header + *header_bytes_written, FIRM_PARAMS_TYPE_SIZE,
-                     "%s", "s");
-            *header_bytes_written += 2;
-        }
-        *header_bytes_written += padding_firma;
-        *len += body_len;
-        *header = realloc(*header, *len);
-        memcpy(*header + *header_bytes_written, body, body_len);
-
-        free(body);
+static void _add_body(int cant_param, char** header, char* body,
+        int* header_bytes_written, int padding_firma, int body_len, int* len){
+    snprintf(*header + *header_bytes_written, PARAMS_INFO_SIZE,
+             "%c%c%s", 8, 1, "g");
+    *header_bytes_written += 4;
+    snprintf(*header + *header_bytes_written, FIRM_PARAMS_INFO_SIZE,
+             "%c", cant_param);
+    *header_bytes_written += 1;
+    for (int i = 0; i < cant_param; ++i) {
+        snprintf(*header + *header_bytes_written, FIRM_PARAMS_TYPE_SIZE,
+                 "%s", "s");
+        *header_bytes_written += 2;
     }
+    *header_bytes_written += padding_firma;
+    *len += body_len;
+    *header = realloc(*header, *len);
+    memcpy(*header + *header_bytes_written, body, body_len);
+
+    free(body);
 }
 
 char* process_line(char* line, int* len, int id) {
     message_t msg;
-    int padding = 0, firma_len = 0;
-    int header_bytes_written = 0;
+    int padding = 0, padding_firma = 0, cant_param = 0;
+    int firma_len = 0, body_len = 0, header_bytes_written = 0;
     char* header = NULL;
     char* body = NULL;
-    int body_len = 0;
-    int cant_param = 0;
-    int padding_firma = 0;
 
     _split_line(&msg, &padding, len, line);
-
-    _build_body(&body, msg.parameters, &body_len, &padding, &cant_param, &firma_len, &padding_firma);
-
-    *len += padding + 16 + 8*4 + 4 + firma_len; //16 bytes fijos + 8 fijos por 4 parametros + 4 * \0 + firma
-
-    header = _build_header(id, len, body_len, &header_bytes_written, padding_firma, msg);
-
-    _add_body(cant_param, &header, body, &header_bytes_written, padding_firma, body_len, len);
+    _build_body(&body, msg.parameters, &body_len, &padding,
+            &cant_param, &firma_len, &padding_firma);
+    *len += padding + 16 + 8*4 + 4 + firma_len;
+    header = _build_header(id, len, body_len, &header_bytes_written,
+            padding_firma, msg);
+    if (cant_param != 0) _add_body(cant_param, &header, body,
+            &header_bytes_written, padding_firma, body_len, len);
 
     return header;
 }

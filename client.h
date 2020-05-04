@@ -2,11 +2,21 @@
 #define _CLIENT_H
 
 #include "common_socket.h"
+#include "common_message.h"
+#include "common_printer.h"
 
 typedef struct {
     int client_skt;
 } client_t;
 
-int client_start(const char* host, const char* port, const char* filename);
+/* Constructor */
+void client_initialize(client_t* self);
+
+/* Comienza la ejecucion del cliente */
+int client_start(client_t* self, const char* host, const char* port,
+        const char* filename);
+
+/* Destructor */
+void client_destroy(client_t* self);
 
 #endif //_CLIENT_H
