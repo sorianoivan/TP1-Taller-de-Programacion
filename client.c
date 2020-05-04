@@ -21,7 +21,7 @@ static void _client_destroy(client_t* client){
     close(client->client_skt);
 }
 
-static int _send_message(const char* msg, int skt, int full_msg_len){
+static int _send_message(char* msg, int skt, int full_msg_len){
     if (try_send(msg, full_msg_len, skt) != 0){
         return ERROR;
     }

@@ -1,4 +1,7 @@
 #include "server.h"
+#include <arpa/inet.h>
+#include <byteswap.h>
+
 
 #define ERROR -1
 #define OK 0
@@ -29,6 +32,7 @@ static int _calculate_msg_len(char** msg, int* id, u_int32_t* body_len) {
 
     bytes_read += 4; //ignoro los primeros 4 bytes
     *body_len = *( (uint32_t *)(*msg + bytes_read));
+    *body_len = bswap_32(ntohl(*body_len));
     bytes_read += 4;
     *id = *(*msg + bytes_read); //id
     bytes_read += 4;
@@ -118,34 +122,17 @@ void show_message(char* msg, const int id, u_int32_t body_len){
 
     _print_header(&bytes_read, &msg_to_print, msg, id);
     _print_body(body_len, &bytes_read, msg);
-
-
-   /* if (body_len != 0){
-        printf("* Parametros:\n");
-        bytes_read += 4;//ignoro los primeros 4 de la firma
-        char cant_param = *(msg + bytes_read);
-        curr_padding = (8 - (5 + 2*cant_param) % 8) % 8;
-        bytes_read += (2*(u_int32_t)cant_param + curr_padding + 1);
-        for (int i = 0; i < cant_param; ++i) {
-            curr_param_len = *((uint32_t *) (msg + bytes_read));
-            bytes_read += 4;
-            printf("    * %s\n", (msg + bytes_read));
-            bytes_read += curr_param_len + 1;
-        }
-    }
-    printf("\n");*/
 }
 
 static int _server_listen(int bind_skt){
     int peer_skt;
-    if(listen(bind_skt, MAX_LISTENERS) == -1) return ERROR;
+    if (listen(bind_skt, MAX_LISTENERS) == -1) return ERROR;
 
     peer_skt = accept(bind_skt, NULL, NULL);
-    if(peer_skt == -1){
+    if (peer_skt == -1){
         fprintf(stderr, "Error: %s\n", strerror(errno));
         return ERROR;
     }
-
     return peer_skt;
 }
 

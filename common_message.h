@@ -14,7 +14,6 @@ typedef struct {
     char* interface;
     char* method;
     char* parameters;
-    char* firm;
 } message_t;
 
 char* process_line(char* line, int* len, int id);
