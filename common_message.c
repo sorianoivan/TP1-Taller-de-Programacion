@@ -2,7 +2,7 @@
 
 #include "common_message.h"
 
-#define HEADER_INFO_SIZE 5
+#define HEADER_FIXED_INFO_SIZE 5
 #define PARAMS_INFO_SIZE 4
 #define FIRM_PARAMS_INFO_SIZE 2
 #define FIRM_PARAMS_TYPE_SIZE 2
@@ -70,7 +70,7 @@ char* process_line(char* line, int* len, int id) {
         firma_len = 5 + 2*cant_param;
     }
 
-    int padding_firma = (8 - (firma_len) % 8) % 8; //padding de firma
+    int padding_firma = (8 - (firma_len) % 8) % 8;
 
     padding += padding_firma;
 
@@ -79,13 +79,12 @@ char* process_line(char* line, int* len, int id) {
 
     header = malloc(*len + 1);
     memset(header, 0, *len + 1);
-    snprintf(header,HEADER_INFO_SIZE, "l%c%c%c",1,0,1);
+    snprintf(header,HEADER_FIXED_INFO_SIZE, "l%c%c%c",1,0,1);
     header_bytes_written += 4;
 
     memcpy(header + header_bytes_written, &body_len, 4);
     header_bytes_written += 4;
     memcpy(header + header_bytes_written, &id, 4);
-    //meto ahora el id dos veces pero en realidad aca va body_len
     header_bytes_written += 4;
 
     int header_len = *len - 16 - padding_firma;

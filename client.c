@@ -1,96 +1,117 @@
 #include "client.h"
 #include "common_message.h"
 
-#define BUFF_SIZE 33
+#define BUFF_SIZE 32
+#define RESPONSE_LEN 3
 
 #define ERROR -1
+#define OK 0
 
-void client_initialize(client_t* client) {
+#define STDIN "stdin"
+#define READ "r"
+
+#define CLIENT "client"
+
+static void _client_initialize(client_t* client) {
     client->client_skt = 0;
 }
 
-int send_message(const char* msg, int* skt, int full_msg_len){
+static void _client_destroy(client_t* client){
+    shutdown(client->client_skt, SHUT_RDWR);
+    close(client->client_skt);
+}
+
+static int _send_message(const char* msg, int skt, int full_msg_len){
     if (try_send(msg, full_msg_len, skt) != 0){
-        printf("error send");
-        return -1;
+        return ERROR;
     }
-    return 0;
+    return OK;
+}
+
+static int _store_line(char** line, FILE* file) {
+    int bytes_read;
+    char buff[BUFF_SIZE + 1];
+    int bytes_written = 0;
+
+    *line = malloc(BUFF_SIZE + 1);
+    memset(*line, 0, BUFF_SIZE + 1);
+    do {
+        if (fgets(buff, BUFF_SIZE + 1, file) != NULL){
+            bytes_read = (int)strlen(buff);
+            *line = realloc(*line, strlen(*line) + bytes_read + 1);
+            snprintf(*line + bytes_written, BUFF_SIZE + 1,"%s",buff);
+            bytes_written += BUFF_SIZE;
+        } else {
+            return ERROR;
+        }
+    }while(bytes_read == BUFF_SIZE);
+    return OK;
+}
+
+static int _read_line(FILE* file, client_t client, u_int32_t msg_id){
+    int s = 0;
+    char* line = NULL;
+    char* msg = NULL;
+    int full_msg_len = 0;
+
+    if(_store_line(&line, file) == -1) return ERROR;
+
+    msg = process_line(line, &full_msg_len, msg_id);
+    s = _send_message(msg, client.client_skt, full_msg_len);
+
+    free(msg);
+    free(line);
+    return s;
+}
+
+static int _recv_response(int skt, u_int32_t msg_id){
+    char response[RESPONSE_LEN];
+    if (try_recv(response,RESPONSE_LEN, skt) == -1){
+        return ERROR;
+    } else {
+        printf("0x%08x: %s\n",msg_id, response);
+    }
+    return OK;
+}
+
+static int _process_file(FILE* file, client_t client) {
+    u_int32_t msg_id = 1;
+    while (!feof(file)){
+        if (_read_line(file, client, msg_id) != 0) return ERROR;
+
+        if (_recv_response(client.client_skt, msg_id) != 0) return ERROR;
+
+        msg_id++;
+    }
+    return OK;
+}
+
+static FILE* _open_input(const char* filename){
+    if (!strcmp(filename, STDIN)){
+        return stdin;
+    } else {
+        return fopen(filename, READ);
+    }
 }
 
 int client_start(const char* host, const char* port, const char* filename) {
     client_t client;
-    client_initialize(&client);
+    FILE* file;
+    int flag;
 
-    if (client_connect(host, port,
-            &client.client_skt) != 0) {//ver si puedo sacar el != 0
-        printf("Error conectando cliente");
+    _client_initialize(&client);
+
+    if (set_up_connection(host, port, &client.client_skt, CLIENT) != 0) return ERROR;
+
+    file = _open_input(filename);
+    if (file == NULL){
+        fprintf(stderr, "Error: %s\n", strerror(errno));
         return ERROR;
     }
 
-    FILE* file;
-    char* line;
-    char buff[BUFF_SIZE];
-    int read = 0;
-    int s = 0;
-    u_int32_t id = 1;
+    flag = _process_file(file, client);
 
-    if (strcmp(filename, "stdin") == 0){
-        file = stdin;
-    } else {
-        file = fopen(filename, "r");
-    }
-
-    line = malloc(33);
-    memset(line, 0, 33);
-
-    char* msg = NULL;
-    int full_msg_len = 0;
-
-    while (!feof(file)){
-        int bytes_written = 0;
-        do {
-            if (fgets(buff, 33, file) == NULL){
-                break;
-            }
-            read = (int)strlen(buff);
-            if (strlen(line) != 0){
-                line = realloc(line, strlen(line) + read + 1);
-            }
-            //strcat(line, buff);
-            snprintf(line + bytes_written, BUFF_SIZE,"%s",buff);
-            bytes_written += 32;
-        }while(read == 32);
-
-        if (strcmp(line, "") != 0){
-            msg = process_line(line, &full_msg_len, id);
-
-            /*for (int i = 0; i < full_msg_len; ++i) {
-                printf("%c", *(msg + i));
-            }*/
-            s = send_message(msg, &client.client_skt, full_msg_len);
-            memset(line, 0, strlen(line));
-
-            free(msg);
-            full_msg_len = 0;
-
-            char response[3];
-            if (try_recv(response,3, &client.client_skt) == -1){
-                printf("error recieve response \n");
-            } else {
-                printf("0x%08x: %s\n",id, response);
-                //ver si tengo q mandar el id desde el server
-            }
-            id++;
-        }
-   }
-    free(line);
-
-    if (strcmp(filename, "stdin") != 0){
-        fclose(file);
-    }
-
-    shutdown(client.client_skt, SHUT_RDWR);
-    close(client.client_skt);
-
-    return s;
+    if (strcmp(filename, STDIN) != 0) fclose(file);
+    _client_destroy(&client);
+    return flag;
 }

@@ -12,18 +12,10 @@
 #include <netdb.h>
 #include <unistd.h>
 
-/*typedef struct{
-    int skt_fd; //socket file descriptor
-} socket_t;*/
+int set_up_connection(const char* host, const char* port, int* skt, const char* mode);
 
-int client_connect(const char* host, const char* port, int* skt);
+int try_recv(void* buff, u_int32_t buff_len, const int skt);
 
-int server_bind(const char* port, int* skt);
-
-//int send_message(const char* msg, const int* skt);
-
-int try_recv(void* buff, uint32_t buff_len, const int* skt);
-
-int try_send(const void* msg, int msg_len, const int* skt);
+int try_send(const void* msg, int msg_len, const int skt);
 
 #endif //_SOCKET_H

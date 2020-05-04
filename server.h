@@ -9,7 +9,6 @@ typedef struct {
     int peer_skt;
 } server_t;
 
-void server_initialize(server_t* server);
 int server_start(const char* port);
 
 #endif //_SERVER_H
