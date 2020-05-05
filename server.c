@@ -18,10 +18,10 @@ void server_initialize(server_t* server){
     server->peer_skt = 0;
 }
 
-static int _calculate_msg_len(char** msg, int* id, u_int32_t* body_len) {
+static int _calculate_msg_len(char** msg, int* id, uint32_t* body_len) {
     int bytes_read = 0;
     int padding_header = 0;
-    u_int32_t header_len = 0;
+    uint32_t header_len = 0;
 
     bytes_read += 4;
     *body_len = *( (uint32_t *)(*msg + bytes_read));
@@ -37,7 +37,7 @@ static int _calculate_msg_len(char** msg, int* id, u_int32_t* body_len) {
     return (int)(header_len + *body_len + padding_header);
 }
 
-static int _recv_info(char** msg, int skt, int* id, u_int32_t* body_len) {
+static int _recv_info(char** msg, int skt, int* id, uint32_t* body_len) {
     int recieved = 0;
 
     *msg = malloc(HEADER_INFO_SIZE);
@@ -56,7 +56,7 @@ static int _recv_info(char** msg, int skt, int* id, u_int32_t* body_len) {
     return _calculate_msg_len(msg, id, body_len);
 }
 
-static int _recv_message(char** msg, int skt, int* id, u_int32_t* body_len){
+static int _recv_message(char** msg, int skt, int* id, uint32_t* body_len){
     int msg_len = _recv_info(msg,skt, id, body_len);
     if (msg_len <= 0) return msg_len;
 
@@ -66,8 +66,8 @@ static int _recv_message(char** msg, int skt, int* id, u_int32_t* body_len){
     return  try_recv(*msg, msg_len, skt);
 }
 
-static void _show_message(char* msg, const int id, u_int32_t body_len){
-    u_int32_t bytes_read = 0;
+static void _show_message(char* msg, const int id, uint32_t body_len){
+    uint32_t bytes_read = 0;
     message_t msg_to_print;
 
     print_header(&bytes_read, &msg_to_print, msg, id);
@@ -96,7 +96,7 @@ static int _send_response(int peer_skt){
 static int _process_msg(int peer_skt) {
     int recieved = 0;
     int id = 0;
-    u_int32_t body_len = 0;
+    uint32_t body_len = 0;
     char* msg = NULL;
     do {
         recieved = _recv_message(&msg, peer_skt, &id, &body_len);

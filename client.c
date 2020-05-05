@@ -42,7 +42,7 @@ static int _store_line(char** line, FILE* file) {
     return OK;
 }
 
-static int _read_line(FILE* file, client_t client, const u_int32_t msg_id){
+static int _read_line(FILE* file, client_t client, const uint32_t msg_id){
     int flag = 0,  full_msg_len = 0;
     char* line = NULL;
     char* msg = NULL;
@@ -60,7 +60,7 @@ static int _read_line(FILE* file, client_t client, const u_int32_t msg_id){
     return flag;
 }
 
-static int _recv_response(const int skt, const u_int32_t msg_id){
+static int _recv_response(const int skt, const uint32_t msg_id){
     char response[RESPONSE_LEN];
 
     if (try_recv(response,RESPONSE_LEN, skt) == -1){
@@ -72,7 +72,7 @@ static int _recv_response(const int skt, const u_int32_t msg_id){
 }
 
 static int _process_file(FILE* file, client_t client) {
-    u_int32_t msg_id = 1;
+    uint32_t msg_id = 1;
 
     while (!feof(file)){
         if (_read_line(file, client, msg_id) != 0) return ERROR;

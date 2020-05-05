@@ -123,7 +123,7 @@ int try_send(const void* msg, int msg_len, const int skt){
     return OK;
 }
 
-int try_recv(void* buff, u_int32_t buff_len, const int skt){
+int try_recv(void* buff, uint32_t buff_len, const int skt){
     int recieved = 0;
     int bytesRecieved = 0;
 
