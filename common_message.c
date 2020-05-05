@@ -37,6 +37,7 @@ static void _build_body(char** body, char* parameters, int* body_len,
     while (curr_param != NULL && strcmp(curr_param, "") != 0){
         *cant_param += 1;
         curr_len = (int)strlen(curr_param);
+        curr_len = bswap_32(htonl(curr_len));
         *body_len += (curr_len + 4 + 1);
         *body = realloc(*body, *body_len + curr_len + 4 + 1);
         memcpy(*body + body_bytes_written, &curr_len, 4);
@@ -60,13 +61,16 @@ static void _add_header_info(char** header, int len, int body_len, int id,
     snprintf(*header,HEADER_FIXED_INFO_SIZE, "l%c%c%c",1,0,1);
     *header_bytes_written += 4;
 
+    body_len = bswap_32(htonl(body_len));
     memcpy(*header + *header_bytes_written, &body_len, 4);
     *header_bytes_written += 4;
 
+    id = bswap_32(htonl(id));
     memcpy(*header + *header_bytes_written, &id, 4);
     *header_bytes_written += 4;
 
     header_len = len - 16 - padding_firma;
+    header_len = bswap_32(htonl(header_len));
     memcpy(*header + *header_bytes_written, &header_len, 4);
     *header_bytes_written += 4;
 }
@@ -79,7 +83,7 @@ static void _add_header_param(char** header,
              "%c%c%s", 1, 1, "o");
     *header_bytes_written += 4;
     curr_len = (int)strlen(param);
-   // curr_len = bswap_32(htonl(curr_len));
+    curr_len = bswap_32(htonl(curr_len));
     memcpy(*header + *header_bytes_written, &curr_len, 4);
     *header_bytes_written += 4;
     strncpy(*header + *header_bytes_written, param, curr_len + 1);

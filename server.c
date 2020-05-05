@@ -25,13 +25,13 @@ static int _calculate_msg_len(char** msg, int* id, u_int32_t* body_len) {
 
     bytes_read += 4;
     *body_len = *( (uint32_t *)(*msg + bytes_read));
-    //*body_len = bswap_32(ntohl(*body_len));
+    *body_len = bswap_32(ntohl(*body_len));
     bytes_read += 4;
     *id = *(*msg + bytes_read);
-    //*id = bswap_32(ntohl(*id));
+    *id = bswap_32(ntohl(*id));
     bytes_read += 4;
     header_len = *((uint32_t *)(*msg + bytes_read));
-    //header_len = bswap_32(ntohl(header_len));
+    header_len = bswap_32(ntohl(header_len));
     padding_header = (int)(8 - (header_len) % 8) % 8;
 
     return (int)(header_len + *body_len + padding_header);
