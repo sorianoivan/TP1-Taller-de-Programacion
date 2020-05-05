@@ -3,7 +3,7 @@
 #define ERROR -1
 #define OK 0
 
-#define BUFF_SIZE 32
+#define BUFF_SIZE 33
 #define RESPONSE_LEN 3
 
 #define STDIN "stdin"
@@ -25,20 +25,20 @@ static int _send_message(const char* msg, const int skt,
 
 static int _store_line(char** line, FILE* file) {
     int bytes_read, bytes_written = 0;
-    char buff[BUFF_SIZE + 1];
+    char buff[33];
 
-    *line = malloc(BUFF_SIZE + 1);
-    memset(*line, 0, BUFF_SIZE + 1);
+    *line = malloc(33);
+    memset(*line, 0, 33);
     do {
-        if (fgets(buff, BUFF_SIZE + 1, file) != NULL){
+        if (fgets(buff, 33, file) != NULL){
             bytes_read = (int)strlen(buff);
             *line = realloc(*line, strlen(*line) + bytes_read + 1);
-            snprintf(*line + bytes_written, BUFF_SIZE + 1,"%s",buff);
-            bytes_written += BUFF_SIZE;
+            snprintf(*line + bytes_written, BUFF_SIZE,"%s",buff);
+            bytes_written += 32;
         } else {
             return ERROR;
         }
-    }while(bytes_read == BUFF_SIZE);
+    }while(bytes_read == 32);
     return OK;
 }
 
