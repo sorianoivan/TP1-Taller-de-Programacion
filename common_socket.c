@@ -13,6 +13,7 @@
 static int _set_addrinfo(struct addrinfo** results, const char* host,
         const char* port, const char* mode) {
     struct addrinfo hints;
+    int flag = 0;
 
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET;
@@ -23,7 +24,12 @@ static int _set_addrinfo(struct addrinfo** results, const char* host,
     } else {
         hints.ai_flags = AI_PASSIVE;
     }
-    return getaddrinfo(host, port, &hints, results);
+    flag = getaddrinfo(host, port, &hints, results);
+    if (flag != 0){
+        fprintf(stderr, "Error: %s\n", gai_strerror(flag));
+        return ERROR;
+    }
+    return flag;
 }
 
 static int _try_connect(struct addrinfo* results, int* skt) {
@@ -91,9 +97,10 @@ int set_up_connection(const char* host, const char* port, int* skt,
 
     int flag = _set_addrinfo(&results, host, port, mode);
     if (flag != 0){
-        fprintf(stderr, "Error: %s\n", gai_strerror(flag));
+        freeaddrinfo(results);
         return ERROR;
     }
+
     if (!strcmp(mode,SERVER)) {
         return _try_bind(results, skt);
     } else {
