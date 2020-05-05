@@ -30,10 +30,10 @@ Del lado del server, luego de establecer la conexión, este recibe, mediante su 
 
 Luego de lograr que mi trabajo pase exitosamente las pruebas de SERCOM comencé a modularizarlo, ya que estaba muy desprolijo y no cumplía con algunas reglas de la cátedra. Termine de modularizar todo la noche del lunes previa a la entrega, pero al hacer la entrega en SERCOM esta falló, indicando en Observaciones "Se esperaba terminar con un código de retorno 0 pero se obtuvo 7", lo cual me pareció raro, ya que mi programa devuelve 0 si todo funciono bien o -1 si hay un error. Por esto vi todos los archivos de salida que provee el SERCOM pero el único que indicaba un error era __ stdout __ diciendo "Client/Netcat 0 exit code: 255. ERROR: Unexpected result in Client/Netcat 0 execution.". Al ver esto ejecute mi programa con los 3 archivos de prueba y en todos los casos funciono bien y devolvió 0. Luego, pensando que podía ser un problema de como lo estaba ejecutando, descargue los archivos "free_port.sh" y "run.sh" del SERCOM y corri el comando "chmod +x run.sh free_port.sh;./run.sh $(./free_port.sh 10001) no-valgrind" y al contrario del SERCOM, la prueba paso. Dejo una captura:
 
-![Screenshot from 2020-05-05 14-31-41](/home/ivan/Documents/UBA/Taller/TP1/img/Screenshot from 2020-05-05 14-31-41.png)
+![Prueba_SERCOM](/img/Prueba_SERCOM_OK.png)
 
 Al preguntar por la lista, un ayudante me dijo que corriéndolo detecto un leak, pero cuando yo lo corrí con los mismos flag, valgrind no detecto nada:
 
-![Screenshot from 2020-05-05 14-33-25](/home/ivan/Documents/UBA/Taller/TP1/img/Screenshot from 2020-05-05 14-33-25.png)
+![Valgrind](/img/Valgrind_No_Leaks.png)
 
 Dado que mi pc no detectaba el problema no tuve la posibilidad de arreglarlo para la entrega. Por esto, la ultima entrega que pasa las pruebas es una versión muy temprana que no es aceptable como entrega final. Por eso agradecería que para corregir se tome la ultima entrega al SERCOM a pesar de que haya fallado.
