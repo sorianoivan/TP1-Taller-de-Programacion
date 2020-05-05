@@ -79,7 +79,7 @@ static void _add_header_param(char** header,
              "%c%c%s", 1, 1, "o");
     *header_bytes_written += 4;
     curr_len = (int)strlen(param);
-    curr_len = bswap_32(htonl(curr_len));
+   // curr_len = bswap_32(htonl(curr_len));
     memcpy(*header + *header_bytes_written, &curr_len, 4);
     *header_bytes_written += 4;
     strncpy(*header + *header_bytes_written, param, curr_len + 1);
