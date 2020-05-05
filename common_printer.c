@@ -13,19 +13,20 @@ static void _set_header_parameters(u_int32_t* bytes_read,
     *bytes_read += (int)(curr_param_len + curr_padding + 1);
 }
 
-void print_header(u_int32_t* bytes_read, message_t* msg_to_print,
-        char* msg, int id){
+void print_header(u_int32_t* bytes_read,  char* msg, int id){
+    message_processor_t msg_to_print;
+
     printf("* Id: 0x%08x\n", id);
 
-    _set_header_parameters(bytes_read, msg, &msg_to_print->path);
-    _set_header_parameters(bytes_read, msg, &msg_to_print->dest);
-    _set_header_parameters(bytes_read, msg, &msg_to_print->interface);
-    _set_header_parameters(bytes_read, msg, &msg_to_print->method);
+    _set_header_parameters(bytes_read, msg, &msg_to_print.path);
+    _set_header_parameters(bytes_read, msg, &msg_to_print.dest);
+    _set_header_parameters(bytes_read, msg, &msg_to_print.interface);
+    _set_header_parameters(bytes_read, msg, &msg_to_print.method);
 
-    printf("* Destino: %s\n", msg_to_print->dest);
-    printf("* Ruta: %s\n", msg_to_print->path);
-    printf("* Interfaz: %s\n", msg_to_print->interface);
-    printf("* Metodo: %s\n", msg_to_print->method);
+    printf("* Destino: %s\n", msg_to_print.dest);
+    printf("* Ruta: %s\n", msg_to_print.path);
+    printf("* Interfaz: %s\n", msg_to_print.interface);
+    printf("* Metodo: %s\n", msg_to_print.method);
 }
 
 void print_body(u_int32_t body_len, u_int32_t* bytes_read, char* msg){

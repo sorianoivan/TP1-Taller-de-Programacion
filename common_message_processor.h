@@ -1,5 +1,5 @@
-#ifndef TP1_COMMON_MESSAGE_H
-#define TP1_COMMON_MESSAGE_H
+#ifndef TP1_COMMON_MESSAGE_PROCESSOR_H
+#define TP1_COMMON_MESSAGE_PROCESSOR_H
 
 #include <stdio.h>
 #include <errno.h>
@@ -14,10 +14,10 @@ typedef struct {
     char* interface;
     char* method;
     char* parameters;
-} message_t;
+} message_processor_t;
 
 /* Recibe una linea del archivo y arma el mensaje siguiendo el protocolo DBus
  * Devuelve un puntero al inicio del mensaje armado */
 char* process_line(char* line, int* len, int id);
 
-#endif //TP1_COMMON_MESSAGE_H
+#endif //TP1_COMMON_MESSAGE_PROCESSOR_H

@@ -2,7 +2,7 @@
 #define _SERVER_H
 
 #include "common_socket.h"
-#include "common_message.h"
+#include "common_message_processor.h"
 #include "common_printer.h"
 
 typedef struct {

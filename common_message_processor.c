@@ -1,6 +1,6 @@
 #define _POSIX_C_SOURCE 200112L
 
-#include "common_message.h"
+#include "common_message_processor.h"
 #include <arpa/inet.h>
 #include <byteswap.h>
 
@@ -16,7 +16,8 @@ static void _set_header_param(char** param, char* line, char** saveptr,
     *padding += (int)(8 - (strlen(*param) + 1) % 8) % 8;
 }
 
-static void _split_line(message_t* msg, int* padding, int* len, char* line){
+static void _split_line(message_processor_t* msg,
+        int* padding, int* len, char* line){
     char* saveptr;
 
     _set_header_param(&msg->dest, line, &saveptr, len, padding);
@@ -92,7 +93,8 @@ static void _add_header_param(char** header,
 }
 
 static char* _build_header(int id, int* len, int body_len,
-        int* header_bytes_written, int padding_firma, message_t msg){
+                           int* header_bytes_written, int padding_firma,
+                           message_processor_t msg){
     char* header;
 
     _add_header_info(&header, *len, body_len, id,
@@ -127,7 +129,7 @@ static void _add_body(int cant_param, char** header, char* body,
 }
 
 char* process_line(char* line, int* len, int id) {
-    message_t msg;
+    message_processor_t msg;
     int padding = 0, padding_firma = 0, cant_param = 0;
     int firma_len = 0, body_len = 0, header_bytes_written = 0;
     char* header = NULL;
@@ -136,7 +138,9 @@ char* process_line(char* line, int* len, int id) {
     _split_line(&msg, &padding, len, line);
     _build_body(&body, msg.parameters, &body_len, &padding,
             &cant_param, &firma_len, &padding_firma);
+
     *len += padding + 16 + 8*4 + 4 + firma_len;
+
     header = _build_header(id, len, body_len, &header_bytes_written,
             padding_firma, msg);
     if (cant_param != 0) _add_body(cant_param, &header, body,

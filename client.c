@@ -3,7 +3,7 @@
 #define ERROR -1
 #define OK 0
 
-#define BUFF_SIZE 33
+#define BUFF_SIZE 32
 #define RESPONSE_LEN 3
 
 #define STDIN "stdin"
@@ -25,24 +25,26 @@ static int _send_message(const char* msg, const int skt,
 
 static int _store_line(char** line, FILE* file) {
     int bytes_read, bytes_written = 0;
-    char buff[BUFF_SIZE];
+    char buff[BUFF_SIZE + 1];
 
-    *line = malloc(33*sizeof(char));
-    memset(*line, 0, 33*sizeof(char));
     do {
-        if (fgets(buff, BUFF_SIZE, file) != NULL){
+        if (fgets(buff, BUFF_SIZE + 1, file) != NULL){
             bytes_read = (int)strlen(buff);
-            *line = realloc(*line, strlen(*line) + bytes_read + 1);
-            snprintf(*line + bytes_written, BUFF_SIZE,"%s",buff);
-            bytes_written += BUFF_SIZE - 1;
+            if ((*line) == NULL){
+            	*line = realloc(*line, bytes_read + 1);
+            } else {
+           	*line = realloc(*line, strlen(*line) + bytes_read + 1);
+            }            
+            snprintf(*line + bytes_written, BUFF_SIZE + 1,"%s",buff);
+            bytes_written += bytes_read;
         } else {
             return ERROR;
         }
-    }while(bytes_read == BUFF_SIZE - 1);
+    }while(bytes_read == BUFF_SIZE);
     return OK;
 }
 
-static int _read_line(FILE* file, client_t client, const uint32_t msg_id){
+static int  _read_line(FILE* file, client_t client, const uint32_t msg_id){
     int flag = 0,  full_msg_len = 0;
     char* line = NULL;
     char* msg = NULL;

@@ -68,9 +68,8 @@ static int _recv_message(char** msg, int skt, int* id, uint32_t* body_len){
 
 static void _show_message(char* msg, const int id, uint32_t body_len){
     uint32_t bytes_read = 0;
-    message_t msg_to_print;
 
-    print_header(&bytes_read, &msg_to_print, msg, id);
+    print_header(&bytes_read, msg, id);
     print_body(body_len, &bytes_read, msg);
 }
 
