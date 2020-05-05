@@ -76,11 +76,8 @@ static int _recv_response(const int skt, const uint32_t msg_id){
 static int _process_file(FILE* file, client_t client) {
     uint32_t msg_id = 1;
 
-    while (!feof(file)){
-        if (_read_line(file, client, msg_id) != 0) return ERROR;
-
+    while (_read_line(file, client, msg_id) == 0){
         if (_recv_response(client.client_skt, msg_id) != 0) return ERROR;
-
         msg_id++;
     }
     return OK;
