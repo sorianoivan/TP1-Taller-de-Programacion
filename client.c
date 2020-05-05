@@ -25,20 +25,20 @@ static int _send_message(const char* msg, const int skt,
 
 static int _store_line(char** line, FILE* file) {
     int bytes_read, bytes_written = 0;
-    char buff[33];
+    char buff[BUFF_SIZE];
 
-    *line = malloc(33);
-    memset(*line, 0, 33);
+    *line = malloc(33*sizeof(char));
+    memset(*line, 0, 33*sizeof(char));
     do {
-        if (fgets(buff, 33, file) != NULL){
+        if (fgets(buff, BUFF_SIZE, file) != NULL){
             bytes_read = (int)strlen(buff);
             *line = realloc(*line, strlen(*line) + bytes_read + 1);
             snprintf(*line + bytes_written, BUFF_SIZE,"%s",buff);
-            bytes_written += 32;
+            bytes_written += BUFF_SIZE - 1;
         } else {
             return ERROR;
         }
-    }while(bytes_read == 32);
+    }while(bytes_read == BUFF_SIZE - 1);
     return OK;
 }
 
@@ -47,7 +47,10 @@ static int _read_line(FILE* file, client_t client, const u_int32_t msg_id){
     char* line = NULL;
     char* msg = NULL;
 
-    if (_store_line(&line, file) == -1) return ERROR;
+    if (_store_line(&line, file) == -1){
+        free(line);
+        return ERROR;
+    }
 
     msg = process_line(line, &full_msg_len, msg_id);
     flag = _send_message(msg, client.client_skt, full_msg_len);
