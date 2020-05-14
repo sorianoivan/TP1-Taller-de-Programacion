@@ -12,12 +12,12 @@
 #define CLIENT "client"
 
 void client_initialize(client_t* self) {
-    self->client_skt = 0;
+    socket_initialize(&self->client_skt);
 }
 
 static int _send_message(const char* msg, const int skt,
         const int full_msg_len){
-    if (try_send(msg, full_msg_len, skt) != 0){
+    if (socket_send(msg, full_msg_len, skt) != 0){
         return ERROR;
     }
     return OK;
@@ -27,16 +27,14 @@ static int _store_line(char** line, FILE* file) {
     int bytes_read, bytes_written = 0;
     char buff[BUFF_SIZE + 1];
 
+    *line = malloc((BUFF_SIZE + 1) * sizeof(char));
+    memset(*line, 0, (BUFF_SIZE + 1) * sizeof(char));
     do {
-        if (fgets(buff, BUFF_SIZE + 1, file) != NULL){
+        if (fgets(buff, (BUFF_SIZE + 1) * sizeof(char), file) != NULL){
             bytes_read = (int)strlen(buff);
-            if ((*line) == NULL){
-            	*line = realloc(*line, bytes_read + 1);
-            } else {
-           	*line = realloc(*line, strlen(*line) + bytes_read + 1);
-            }            
+            *line = realloc(*line, strlen(*line) + bytes_read + 1);
             snprintf(*line + bytes_written, BUFF_SIZE + 1,"%s",buff);
-            bytes_written += bytes_read;
+            bytes_written += BUFF_SIZE;
         } else {
             return ERROR;
         }
@@ -54,7 +52,7 @@ static int  _read_line(FILE* file, client_t client, const uint32_t msg_id){
         return ERROR;
     }
 
-    msg = process_line(line, &full_msg_len, msg_id);
+    msg = mp_process_line(line, &full_msg_len, msg_id);
     flag = _send_message(msg, client.client_skt, full_msg_len);
 
     free(msg);
@@ -65,10 +63,10 @@ static int  _read_line(FILE* file, client_t client, const uint32_t msg_id){
 static int _recv_response(const int skt, const uint32_t msg_id){
     char response[RESPONSE_LEN];
 
-    if (try_recv(response,RESPONSE_LEN, skt) == -1){
+    if (socket_receive(response, RESPONSE_LEN, skt) == -1){
         return ERROR;
     } else {
-        print_response(msg_id, response);
+        printer_show_response(msg_id, response);
     }
     return OK;
 }
@@ -78,6 +76,7 @@ static int _process_file(FILE* file, client_t client) {
 
     while (_read_line(file, client, msg_id) == 0){
         if (_recv_response(client.client_skt, msg_id) != 0) return ERROR;
+
         msg_id++;
     }
     return OK;
@@ -96,7 +95,7 @@ int client_start(client_t * self, const char* host, const char* port,
     FILE* file;
     int flag;
 
-    if (set_up_connection(host, port, &self->client_skt, CLIENT) != 0)
+    if (socket_set_up_connection(host, port, &self->client_skt, CLIENT) != 0)
         return ERROR;
 
     file = _open_input(filename);
@@ -112,6 +111,5 @@ int client_start(client_t * self, const char* host, const char* port,
 }
 
 void client_destroy(client_t* self){
-    shutdown(self->client_skt, SHUT_RDWR);
-    close(self->client_skt);
+    socket_destroy(&self->client_skt);
 }

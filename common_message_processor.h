@@ -18,6 +18,6 @@ typedef struct {
 
 /* Recibe una linea del archivo y arma el mensaje siguiendo el protocolo DBus
  * Devuelve un puntero al inicio del mensaje armado */
-char* process_line(char* line, int* len, int id);
+char* mp_process_line(char* line, int* len, int id);
 
 #endif //TP1_COMMON_MESSAGE_PROCESSOR_H

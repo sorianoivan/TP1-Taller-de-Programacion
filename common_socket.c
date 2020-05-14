@@ -90,8 +90,12 @@ static int _try_bind(struct addrinfo* results, int* skt) {
     return OK;
 }
 
-int set_up_connection(const char* host, const char* port, int* skt,
-        const char* mode){
+void socket_initialize(int* skt){
+    *skt = 0;
+}
+
+int socket_set_up_connection(const char* host, const char* port, int* skt,
+                             const char* mode){
     struct addrinfo *results;
     memset(&results, 0, sizeof(struct addrinfo*));
 
@@ -108,36 +112,41 @@ int set_up_connection(const char* host, const char* port, int* skt,
     }
 }
 
-int try_send(const void* msg, int msg_len, const int skt){
-    int bytesSentTotal = 0;
-    int sent;
+int socket_send(const void* msg, int msg_len, const int skt){
+    int bytes_sent = 0;
+    int sent = 0;
 
-    while (bytesSentTotal < msg_len) {
-        sent = send(skt, msg, msg_len - bytesSentTotal, MSG_NOSIGNAL);
+    while (bytes_sent < msg_len) {
+        sent = send(skt, msg, msg_len - bytes_sent, MSG_NOSIGNAL);
         if (sent == -1){
             fprintf(stderr,"Error: %s\n", strerror(errno));
             return ERROR;
         }
-        bytesSentTotal += sent;
+        if (sent == 0) return 0;
+        bytes_sent += sent;
     }
     return OK;
 }
 
-int try_recv(void* buff, uint32_t buff_len, const int skt){
-    int recieved = 0;
-    int bytesRecieved = 0;
+int socket_receive(void* buff, uint32_t buff_len, const int skt){
+    int received = 0;
+    int bytes_received = 0;
 
-    while (bytesRecieved < buff_len) {
-        recieved = recv(skt, buff, buff_len - bytesRecieved, 0);
-        if (recieved == -1){
+    while (bytes_received < buff_len) {
+        received = recv(skt, buff, buff_len - bytes_received, 0);
+        if (received == -1){
             fprintf(stderr,"Error: %s\n", strerror(errno));
             return ERROR;
         }
-        if (recieved == 0){
-            return 0;
-        }
-        bytesRecieved += recieved;
+        if (received == 0) return 0;
+
+        bytes_received += received;
     }
-    return recieved;
+    return received;
+}
+
+void socket_destroy(int* skt){
+    shutdown(*skt, SHUT_RDWR);
+    close(*skt);
 }
 

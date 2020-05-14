@@ -1,5 +1,3 @@
-#define _POSIX_C_SOURCE 200112L
-
 #include "common_message_processor.h"
 #include <arpa/inet.h>
 #include <byteswap.h>
@@ -9,32 +7,60 @@
 #define FIRM_PARAMS_INFO_SIZE 2
 #define FIRM_PARAMS_TYPE_SIZE 2
 
-static void _set_header_param(char** param, char* line, char** saveptr,
+static void _set_header_param(char** param, char** pos_actual, const char* delim,
         int* len, int* padding){
-    *param = strtok_r(line, " (", saveptr);
+    char* aux;
+    aux = strstr(*pos_actual, delim);
+    *aux = '\0';
+    *param = *pos_actual;
+    *pos_actual = (aux + 1);
     *len += (int)strlen(*param);
     *padding += (int)(8 - (strlen(*param) + 1) % 8) % 8;
 }
 
+static void _set_body_parameters(char** parameters, char* pos_actual,
+        const char* delim){
+    char* aux;
+    aux = strstr(pos_actual, delim);
+    *aux = '\0';
+    *parameters = pos_actual;
+}
+
 static void _split_line(message_processor_t* msg,
         int* padding, int* len, char* line){
-    char* saveptr;
+    char* pos_actual;
+    pos_actual = line;
 
-    _set_header_param(&msg->dest, line, &saveptr, len, padding);
-    _set_header_param(&msg->path, NULL, &saveptr, len, padding);
-    _set_header_param(&msg->interface, NULL, &saveptr, len, padding);
-    _set_header_param(&msg->method, NULL, &saveptr, len, padding);
+    _set_header_param(&msg->dest, &pos_actual, " ", len, padding);
+    _set_header_param(&msg->path, &pos_actual, " ", len, padding);
+    _set_header_param(&msg->interface, &pos_actual, " ", len, padding);
+    _set_header_param(&msg->method, &pos_actual, "(", len, padding);
 
-    msg->parameters = strtok_r(NULL, ")\n", &saveptr);
+    _set_body_parameters(&msg->parameters, pos_actual, ")");
+}
+
+static char* _get_param(char** params, char** pos_actual, const char* delim){
+    char* aux;
+    char* curr_param;
+    aux = strstr(*pos_actual, delim);
+    if(aux != NULL){
+        *aux = '\0';
+        *params = *pos_actual;
+        curr_param = *pos_actual;
+        *pos_actual = (aux + 1);
+        return curr_param;
+    }
+    *pos_actual = NULL;
+    return *params;
 }
 
 static void _build_body(char** body, char* parameters, int* body_len,
         int* padding, int* cant_param, int* firma_len, int* padding_firma) {
     char* curr_param = NULL;
-    char* saveptr;
+    char* pos_actual = parameters;
     int curr_len = 0, body_bytes_written = 0;
 
-    if (parameters != NULL) curr_param = strtok_r(parameters, ", )", &saveptr);
+    curr_param = _get_param(&parameters, &pos_actual, ",");
     while (curr_param != NULL && strcmp(curr_param, "") != 0){
         *cant_param += 1;
         curr_len = (int)strlen(curr_param);
@@ -45,7 +71,9 @@ static void _build_body(char** body, char* parameters, int* body_len,
         body_bytes_written += 4;
         memcpy(*body + body_bytes_written, curr_param, curr_len + 1);
         body_bytes_written += curr_len + 1;
-        curr_param = strtok_r(NULL, ",)", &saveptr);
+        if (pos_actual != NULL)
+            curr_param = _get_param(&parameters, &pos_actual, ",");
+        else curr_param = NULL;
     }
     if (*cant_param != 0) *firma_len = 5 + 2* (*cant_param);
     *padding_firma = (8 - (*firma_len) % 8) % 8;
@@ -128,16 +156,17 @@ static void _add_body(int cant_param, char** header, char* body,
     free(body);
 }
 
-char* process_line(char* line, int* len, int id) {
+char* mp_process_line(char* line, int* len, int id) {
     message_processor_t msg;
     int padding = 0, padding_firma = 0, cant_param = 0;
     int firma_len = 0, body_len = 0, header_bytes_written = 0;
-    char* header = NULL;
-    char* body = NULL;
+    char *header = NULL;
+    char *body = NULL;
 
     _split_line(&msg, &padding, len, line);
+    if (msg.parameters != NULL)
     _build_body(&body, msg.parameters, &body_len, &padding,
-            &cant_param, &firma_len, &padding_firma);
+                &cant_param, &firma_len, &padding_firma);
 
     *len += padding + 16 + 8*4 + 4 + firma_len;
 

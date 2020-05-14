@@ -13,7 +13,7 @@ static void _set_header_parameters(u_int32_t* bytes_read,
     *bytes_read += (int)(curr_param_len + curr_padding + 1);
 }
 
-void print_header(u_int32_t* bytes_read,  char* msg, int id){
+void printer_show_header(u_int32_t* bytes_read, char* msg, int id){
     message_processor_t msg_to_print;
 
     printf("* Id: 0x%08x\n", id);
@@ -29,7 +29,7 @@ void print_header(u_int32_t* bytes_read,  char* msg, int id){
     printf("* Metodo: %s\n", msg_to_print.method);
 }
 
-void print_body(u_int32_t body_len, u_int32_t* bytes_read, char* msg){
+void printer_show_body(u_int32_t body_len, u_int32_t* bytes_read, char* msg){
     u_int32_t curr_padding = 0;
     u_int32_t curr_param_len = 0;
 
@@ -49,6 +49,6 @@ void print_body(u_int32_t body_len, u_int32_t* bytes_read, char* msg){
     printf("\n");
 }
 
-void print_response(u_int32_t id, char* response){
+void printer_show_response(u_int32_t id, char* response){
     printf("0x%08x: %s\n",id, response);
 }
