@@ -32,7 +32,7 @@ static int _set_addrinfo(struct addrinfo** results, const char* host,
     return flag;
 }
 
-static int _try_connect(struct addrinfo* results, int* skt) {
+static int _connect(struct addrinfo* results, int* skt) {
     struct addrinfo* current_result;
     bool connected = false;
 
@@ -61,7 +61,7 @@ static int _try_connect(struct addrinfo* results, int* skt) {
  * funciones que reciben parametros largos, lo que causa que dichas
  * llamadas ocupen mas de 80 caracteres por lo cual debo repartirlas
  * en mas lineas */
-static int _try_bind(struct addrinfo* results, int* skt) {
+static int _bind(struct addrinfo* results, int* skt) {
     struct addrinfo* current_result;
     bool connected = false;
 
@@ -106,9 +106,9 @@ int socket_set_up_connection(const char* host, const char* port, int* skt,
     }
 
     if (!strcmp(mode,SERVER)) {
-        return _try_bind(results, skt);
+        return _bind(results, skt);
     } else {
-        return _try_connect(results, skt);
+        return _connect(results, skt);
     }
 }
 

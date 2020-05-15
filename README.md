@@ -26,3 +26,52 @@ Del lado del server, luego de establecer la conexión, este recibe, mediante su 
 
 ![Recepcion_Mensaje_Diagrama_Secuencia](/img/Recepcion_Mensaje_Diagrama_Secuencia.png)
 
+### <u>Reentrega</u>
+
+A continuación se listan los cambios realizados para la reentrega:
+
+##### Issue 1: Send puede retornar 0:
+
+Se agrega un chequeo para que el programa no quede en un bucle infinito en caso de que *send()* retorne 0
+
+##### Issue 2: Funciones try:
+
+Se quito el *try* de las funciones que lo tenían. Ejemplo: *try_send* -> *socket_send*
+
+##### Issue 3: Typo:
+
+recieve -> receive
+
+##### Issue 4: Documentacion:
+
+Se agrego documentación a aquellas funciones cuya logica no era clara
+
+##### Issue 5: strtok_r():
+
+Se implementaron funciones utilizando strstr() que cumplen la función que antes era de strtok_r(). Estas funciones son *_set_header_param()*, *_set_body_parameters()*, *_get_param()*
+
+##### Issue 6: Refactorización:
+
+El paso de host a little endian y viceversa se paso a las funciones *mp_host_to_little()* y *mp_little_to_host()*
+
+##### Issue 7: Leak:
+
+El leak ocurría si los argumentos recibidos eran inválidos, así que se movió el constructor del TDA Client para que se llame solo si los argumentos son válidos
+
+##### Issue 8: Usar sizeof():
+
+Se agrego sizeof() al llamado de fgets. Ahora es:
+
+`if (fgets(buff, (BUFF_SIZE + 1) * sizeof(char), file) != NULL)` 
+
+##### Issue 9: Encapsulamiento TDA Socket:
+
+Se agrego constructor y destructor del TDA Socket para que no se rompa el encapsulamiento
+
+##### Issue 10: Heap innecesario:
+
+Se pasa a usar un array fijo en lugar de uno dinámico
+
+##### Issue 11: Falta Documentacion:
+
+Idem Issue 4
