@@ -20,4 +20,10 @@ typedef struct {
  * Devuelve un puntero al inicio del mensaje armado */
 char* mp_process_line(char* line, int* len, int id);
 
+/* Recibe un numero y lo pasa a little endian */
+int mp_host_to_little(int n);
+
+/* recibe un numero en little endian y lo pasa al endianness del host */
+int mp_little_to_host(int n);
+
 #endif //TP1_COMMON_MESSAGE_PROCESSOR_H

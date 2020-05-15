@@ -12,6 +12,7 @@
 #include <netdb.h>
 #include <unistd.h>
 
+/* Constructor */
 void socket_initialize(int* skt);
 
 /* Trata de establecer conexion con un socket. Si es exitoso devuelve 0,
@@ -29,6 +30,7 @@ int socket_receive(void* buff, u_int32_t buff_len, const int skt);
  * la cantidad de bytes enviados*/
 int socket_send(const void* msg, int msg_len, const int skt);
 
+/* Destructor */
 void socket_destroy(int* skt);
 
 #endif //_SOCKET_H

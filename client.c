@@ -32,8 +32,10 @@ static int _store_line(char** line, FILE* file) {
     do {
         if (fgets(buff, (BUFF_SIZE + 1) * sizeof(char), file) != NULL){
             bytes_read = (int)strlen(buff);
-            *line = realloc(*line, strlen(*line) + bytes_read + 1);
-            snprintf(*line + bytes_written, BUFF_SIZE + 1,"%s",buff);
+            *line = realloc(*line,
+                    strlen(*line) + (bytes_read + 1) * sizeof(char));
+            snprintf(*line + bytes_written,
+                    (BUFF_SIZE + 1 * sizeof(char)),"%s",buff);
             bytes_written += BUFF_SIZE;
         } else {
             return ERROR;
